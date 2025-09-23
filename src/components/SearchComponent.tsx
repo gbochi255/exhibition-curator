@@ -136,7 +136,7 @@ interface Artwork {
                  </div>
                  {/* Sort Dropdown */}
                  <div>
-                    <label htmlFor="">Sort By: </label>
+                    <label>Sort By: </label>
                     <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
                         <option value="none">None</option>
                         <option value="dateAsc">Date Ascending</option>
@@ -159,20 +159,7 @@ interface Artwork {
                             
                                     </li>
                                 ))}</ul>
-                                <div>
-                                <h2>My exhibition({exhibition.length} items)</h2>
-                                <ul style={{ listStyle: 'none' }}> 
-                                    {exhibition.map((art, index) => (
-                                    <li key={index}>
-                                        <h3>{art.title}</h3>
-                                        {art.imageUrl && <img src={art.imageUrl} alt={art.title} style={{ maxWidth: '400px' }} />}
-                                        <p>{art.description}</p>
-                                        <button onClick={() => setExhibition(exhibition.filter((_, i) => i !== index))}>Remove</button>
-                            
-                        </li>
-                    ))}
-                 </ul>
-            </div>
+                                
             </div>
         );
     }

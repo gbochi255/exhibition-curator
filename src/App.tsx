@@ -1,5 +1,7 @@
-import { useState } from 'react'
-import SearchComponent from './components/SearchComponent'
+import { useState } from 'react';
+import { Routes, Route, Link } from 'react-router-dom';
+import SearchComponent from './components/SearchComponent';
+import ExhibitionView from './components/ExhibitionView';
 
 import './App.css'
 
@@ -8,13 +10,15 @@ function App() {
 
   return (
     
-      <div>
-      <h1>Exhibition Curator App</h1>
-      <SearchComponent />
-      <p>Welcome To this Great App</p>
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-      </button>
+      <div className='container'>
+        <nav>
+          <Link to='/'>Home/Search</Link> | <Link  to='/exhibition'>View Exhibition</Link>
+        </nav>
+        <Routes>
+          <Route path='/' element={<SearchComponent />} />
+          <Route path='/exhibition' element={<ExhibitionView />} />
+        </Routes>
+      
       </div>
       )
 }
