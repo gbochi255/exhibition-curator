@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import Spinner from "react-spinners/PulseLoader";
+import { toast, ToastContainer } from "react-toastify";
 
 
 const HARVARD_API_KEY = 'd276f953-ce0a-46c4-8c70-a6728ea3f723';
@@ -51,6 +53,8 @@ interface Artwork {
                 }));
             }catch (harvardErr) {
                 console.error('Harvard Error:', harvardErr);
+                toast.error('Failed to fetch artworks. Please try again')
+                
             }
             
             try{
@@ -82,6 +86,7 @@ interface Artwork {
             }
         }catch (metErr) {
             console.error('Met Error:', metErr)
+            toast.error('Failed to fetch artworks. Please try again')
         }
         let combined = [...harvardArtworks, ...metArtworks];
         //apply filter if selected
@@ -114,6 +119,7 @@ interface Artwork {
 
         return (
             <div className="container">
+                <ToastContainer />
                 <h2>Search Artworks</h2>
                 <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Enter keyword (e.g, Mona Lisa)" />
                  <button onClick={handleSearch} disabled={loading}>Search</button>
@@ -125,6 +131,7 @@ interface Artwork {
                         </button>
                     ))}
                  </div>
+                 
                  {/*  filter Dropdown */}
                  <div>
                     <label>Filter By Classification: </label>
@@ -144,7 +151,7 @@ interface Artwork {
                         <option value="classification">Classification</option>
                     </select>
                  </div>
-                 {loading && <p>Loading...</p>}
+                 {loading && <Spinner color="#007bff" />}
                  {error && <p style={{ color: 'red' }}>{error}</p>}
                  <ul style={{ listStyle: 'none' }}>
                     {results.map((art) => (
