@@ -1,4 +1,5 @@
 import  { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import SearchComponent from '../components/SearchComponent';
 
 describe('SearchComponent', () => {
@@ -12,6 +13,17 @@ describe('SearchComponent', () => {
         render(<SearchComponent />);
         expect(screen.getByText('Renaissance')).toBeInTheDocument();
     });
+    test('shows loading during search', async () => {
+        render(<SearchComponent />);
+        await userEvent.click(screen.getByText('Search'));
+        expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    });
+    test('renders presets and they are clickable', () => {
+        render(<SearchComponent />);
+        expect(screen.getByText('Renaissance')).toBeInTheDocument();
+        const presetButton = screen.getByText('Renaissance');
+        expect(presetButton).toBeEnabled();
+    })
 
     
     });

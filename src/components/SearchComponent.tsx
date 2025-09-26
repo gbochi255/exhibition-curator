@@ -185,7 +185,7 @@ interface Artwork {
                         <option value="classification">Classification</option>
                     </select>
                  </div>
-                 {loading && <Spinner color="#007bff" />}
+                 {loading && <Spinner color="#007bff" role="progressbar" />}
                  {error && <p style={{ color: 'red' }}>{error}</p>}
                  <ul style={{ listStyle: 'none' }}>
                     {results.map((art, idx) => (
