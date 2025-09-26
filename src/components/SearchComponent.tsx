@@ -9,7 +9,7 @@ const HARVARD_BASE_URL = 'https://api.harvardartmuseums.org/object';
 const MET_BASE_URL = 'https://collectionapi.metmuseum.org/public/collection/v1/search';
 
 interface Artwork {
-    id: number;
+    id: number | string;
     title: string;
     description: string;
     imageUrl: string;
@@ -24,33 +24,65 @@ interface Artwork {
         const [results, setResults] = useState<Artwork[]>([]);
         const [loading, setLoading] =useState(false);
         const [error, setError] = useState<string | null>(null);
-        const [exhibition, setExhibition] = useState<Artwork[]>(() => JSON.parse(localStorage.getItem('exhibition') || '[]'));
+        const [exhibition, setExhibition] = useState<Artwork[]>(() => {
+            try{
+            return JSON.parse(localStorage.getItem('exhibition') || '[]'); 
+        }catch {
+            return []
+        }
+    }
+    );
         //load from storage on init
         const [sortBy, setSortBy] = useState('none'); //for sorting
         const [filterByClassification, setFilterByClassification] = useState('all'); //for filtering
 
-        useEffect(() => { localStorage.setItem('exhibition', JSON.stringify(exhibition)); //save on storage
-        console.log('Exhibition saved to localstorage:', exhibition);// debug
+        useEffect(() => { 
+            try{
+            localStorage.setItem('exhibition', JSON.stringify(exhibition)); //save on storage
+            console.log('Exhibition saved to localstorage:', exhibition);// debug
+        }catch (e) {
+
+        }
+        console.log('Exhibition saved to localstorage:', exhibition);
+        
     }, [exhibition]);
 
         const handleSearch = async() => {
             setLoading(true);
             setError(null);
             setResults([]);
+            
             let harvardArtworks: Artwork[] = [];
             let metArtworks: Artwork[] = [];
+
             try{
                 const harvardResponse = await axios.get(`${HARVARD_BASE_URL}?q=${query}&apiKey=${HARVARD_API_KEY}&size=5`);
-                harvardArtworks = harvardResponse.data.records.map((item: any) => ({
-                   id: item.id,
+                const records = Array.isArray(harvardResponse.data.records) ? harvardResponse.data.records : [];
+               // harvardArtworks = harvardResponse.data.records.map((item: any, index: number) => ({
+                    harvardArtworks = records.map((item: any, index: number) => {
+                        const primaryImage = item.primaryimageurl ?? item.primaryimageUrl ?? undefined;
+                        const imagesArray = Array.isArray(item.images) ? item.images : [];
+                        const fallbackImage = imagesArray.length > 0 ? (imagesArray[0].baseimageurl ?? imagesArray[0].baseImageUrl) :undefined;
+                   
+                      return{
+                        id: item.id ?? `harvard-${index}`,
+                        title: item.title ?? 'Untitled',
+                        description: item.description ?? '',
+                        imageUrl: primaryImage ?? fallbackImage,
+                        url: item.url ?? undefined,
+                        dated: item.dated ?? undefined,
+                        century: item.century ?? undefined,
+                        classification: item.classification ?? undefined
+                      }  as Artwork;
+                    /*id: item.id,
                    title: item.title,
                     description: item.description,
                     imageUrl: item.primaryimageUrl || (item.images.length > 0 ? item.images[0].baseimageurl : undefined),//this handles images array
                     url: item.url,
                     dated: item.dated, 
                     century: item.century,
-                    classification: item.classification,
-                }));
+                    classification: item.classification,*/
+                });
             }catch (harvardErr) {
                 console.error('Harvard Error:', harvardErr);
                 toast.error('Failed to fetch artworks. Please try again')
@@ -59,24 +91,26 @@ interface Artwork {
             
             try{
                 const metSearch = await axios.get(`${MET_BASE_URL}?q=${query}`);
-            const metObjectIDs = metSearch.data.objectIDs.slice(0, 5) || [];
-            if (metObjectIDs.length > 0){
-         metArtworks = await Promise.all(
-                metObjectIDs.map(async (id: number) => {
+            //const metObjectIDs = metSearch.data.objectIDs.slice(0, 5) || [];
+            const objectIDs = Array.isArray(metSearch.data.objectIDs) ? metSearch.data.objectIDs.slice(0, 5) : [];
+            if (objectIDs.length > 0){
+            //metArtworks = await Promise.all(
+                const metResults = await Promise.all(
+                objectIDs.map(async (id: number) => {
                 
                         try{
                         const detail = await axios.get(`https://collectionapi.metmuseum.org/public/collection/v1/objects/${id}`);
-                        const item = detail.data;
+                        const item = detail.data ?? {};
                         return {
-                            id: item.objectID,
-                            title: item.title,
-                            description: item.objectName,
-                            imageUrl: item.primaryImage,
-                            url: item.objectUrlURL,
-                            dated: item.objectDate,
+                            id: item.objectID ?? `met-${id}`,
+                            title: item.title ?? 'Untitled',
+                            description: item.objectName ?? '',
+                            imageUrl: item.primaryImage ?? item.primaryImageSmall ?? undefined,
+                            url: item.objectUrlURL ?? undefined,
+                            dated: item.objectDate ?? undefined,
                             century: item.objectEndDate ? `${Math.floor(item.objectEndDate / 100) + 1}th century` : undefined,
-                            classification: item.classification,
-                        };
+                            classification: item.classification ?? undefined
+                        } as Artwork;
                     }catch(detailErr){
                         console.error('Met Detail error for ID)', id, detailErr);
                         return null;
@@ -154,8 +188,8 @@ interface Artwork {
                  {loading && <Spinner color="#007bff" />}
                  {error && <p style={{ color: 'red' }}>{error}</p>}
                  <ul style={{ listStyle: 'none' }}>
-                    {results.map((art) => (
-                        <li key={art.id} style={{ marginBottom: '20px', display: "flex", flexDirection: "column", alignItems: "center" }}>
+                    {results.map((art, idx) => (
+                        <li key={(art.id ?? idx).toString()} style={{ marginBottom: '20px', display: "flex", flexDirection: "column", alignItems: "center" }}>
                             <h3>{art.title}</h3>
                             {art.imageUrl && <img src={art.imageUrl} alt={art.title} style={{ maxWidth: '100%', height: 'auto' }} />}
                             <p>{art.description}</p>
@@ -163,10 +197,8 @@ interface Artwork {
                             <p>Classification: {art.classification}</p>
                             <a href={art.url} target="_blank" rel="noopener noreferrer">More Info</a>
                             <button onClick={() => setExhibition([...exhibition, art])}>Add to Exhibition</button>
-                            
-                                    </li>
-                                ))}</ul>
-                                
+                        </li>
+                    ))}</ul>
             </div>
         );
     }
