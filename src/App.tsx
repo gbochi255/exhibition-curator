@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import SearchComponent from './components/SearchComponent';
 import ExhibitionView from './components/ExhibitionView';
 

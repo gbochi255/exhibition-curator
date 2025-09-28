@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom';
 
 
 interface Artwork {
@@ -13,13 +14,25 @@ interface Artwork {
 }
 
 function ExhibitionView() {
+    const [searchParams] = useSearchParams();
     const [exhibition, setExhibition] = useState<Artwork[]>(() => {
+        //load from params if present
+        const encoded = searchParams.get('items');
+        if(encoded) {
+            try{
+                const decoded = JSON.parse(atob(encoded));//this decode base64
+                if(Array.isArray(decoded)) return decoded as Artwork[];
+            }catch (err){
+                console.error('Invalid share link:', err);
+            }
+        }
         try{
             const stored = localStorage.getItem('exhibition');
             if (stored) {
                 const parsed = JSON.parse(stored);
                 if (Array.isArray(parsed)) {
                     return parsed as Artwork[];
+                    
                 }
             }
             return [];
@@ -29,6 +42,11 @@ function ExhibitionView() {
             return [];
         }
     });
+//generate shareable link
+const shareLink = () => {
+    const encoded = btoa(JSON.stringify(exhibition)); //Base64 encode
+    return `${window.location.origin}/exhibition?items=${encoded}`;
+};
 
     useEffect(() => {
         try{
@@ -49,6 +67,7 @@ function ExhibitionView() {
                     </li>
                     ))}
             </ul>
+            <button onClick={() => navigator.clipboard.writeText(shareLink())}>Copy Share Link</button>
         </div>
     );
 }
