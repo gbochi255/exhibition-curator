@@ -47,10 +47,19 @@ interface Artwork {
         
     }, [exhibition]);
 
-        const handleSearch = async() => {
+        const handleSearch = async(overrides?:{
+            query?: String;
+            filterByClassification?: string;
+            sortBy?: string;
+        }) => {
+            
             setLoading(true);
             setError(null);
             setResults([]);
+
+            const activeQuery = overrides?.query ?? query;
+            const activeFilter = overrides?.filterByClassification ?? filterByClassification;
+            const activeSort = overrides?.sortBy ?? sortBy;
             
             let harvardArtworks: Artwork[] = [];
             let metArtworks: Artwork[] = [];
@@ -124,24 +133,20 @@ interface Artwork {
         }
         let combined = [...harvardArtworks, ...metArtworks];
         //apply filter if selected
-        if (filterByClassification !== 'all') {
-            combined = combined.filter(art => art.classification === filterByClassification);
+        if (activeFilter !== 'all'){
+            combined = combined.filter(art => art.classification === activeFilter);
         }
-                
-                if (harvardArtworks.length === 0 && 
-                    metArtworks.length === 0){
-                    setError('No artworks found for this query. Try broader terms like "art" or remove filters.' );
-                }
-                //apply sort
-                if (sortBy === 'dateAsc') {
-                    combined.sort((a, b) => (a.dated || '').localeCompare(b.dated || ''));
-                } else if (sortBy === 'dateDesc') {
-                    combined.sort((a, b) => (b.dated || '').localeCompare(a.dated || ''));
-                } else if (sortBy === 'classification') {
-                    combined.sort((a, b) => (a.classification || '').localeCompare(b.classification || ''));
-                }
-                setResults(combined);
-                if (combined.length === 0){
+        
+        if (activeSort === 'dateAsc') {
+            combined.sort((a, b) => (a.dated || '').localeCompare(b.dated || ''));
+        } else if (activeSort === 'dateDesc') {
+            combined.sort((a, b) => (b.dated || '').localeCompare(a.dated || ''));
+        } else if (activeSort === 'classification') {
+            combined.sort((a, b) => (a.classification || '').localeCompare(b.classification || ''));
+        }
+        
+        setResults(combined);
+            if (combined.length === 0){
                     setError('No artworks found. Try "art" or "mona lisa".');
                 }
                 setLoading(false);
@@ -156,11 +161,12 @@ interface Artwork {
                 <ToastContainer />
                 <h2>Search Artworks</h2>
                 <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Enter keyword (e.g, Mona Lisa)" />
-                 <button onClick={handleSearch} disabled={loading}>Search</button>
+                 <button onClick={() => handleSearch()} disabled={loading}>Search</button>
                  <div className="presets-container" style={{ display: "flex", flexWrap: "wrap" }}>
                     <h3>Presets</h3>
                     {presets.map((preset) => (
-                        <button key={preset} onClick={() => { setQuery(preset); handleSearch();}} disabled={loading} style={{ margin: '5px' }}>
+                        <button key={preset} onClick={() => { setQuery(preset); handleSearch({ query: preset });
+                        }} disabled={loading} style={{ margin: '5px' }}>
                             {preset}
                         </button>
                     ))}
@@ -168,8 +174,13 @@ interface Artwork {
                  
                  {/*  filter Dropdown */}
                  <div>
-                    <label>Filter By Classification: </label>
-                    <select value={filterByClassification} onChange={(e) => { setFilterByClassification(e.target.value); handleSearch(); }}>
+                    <label htmlFor="filter-select">Filter By Classification: </label>
+                    <select 
+                        id="filter-select" 
+                        value={filterByClassification} 
+                        onChange={(e) => { const v = e.target.value;
+                        setFilterByClassification(v); 
+                        handleSearch({ filterByClassification: v }); }}>
                         <option value="all">ALL</option>
                         <option value="Paintings">Paintings</option>
                         <option value="Sculpture">Sculpture</option>
@@ -177,15 +188,22 @@ interface Artwork {
                  </div>
                  {/* Sort Dropdown */}
                  <div>
-                    <label>Sort By: </label>
-                    <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                    <label htmlFor="sort-select">Sort By:</label>
+                    <select 
+                        id="sort-select"
+                        value={sortBy} 
+                        onChange={(e) => {
+                            const v = e.target.value;
+                            setSortBy(v);
+                            handleSearch({ sortBy: v });
+                        }}>
                         <option value="none">None</option>
                         <option value="dateAsc">Date Ascending</option>
                         <option value="dateDesc">Date Descending</option>
                         <option value="classification">Classification</option>
                     </select>
                  </div>
-                 {loading && <Spinner color="#007bff" role="progressbar" />}
+                 {loading && <Spinner color="#007bff" aria-label="search-loading" data-testid="search-spinner" role="progressbar" /> }
                  {error && <p style={{ color: 'red' }}>{error}</p>}
                  <ul style={{ listStyle: 'none' }}>
                     {results.map((art, idx) => (
