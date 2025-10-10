@@ -1,69 +1,103 @@
-# React + TypeScript + Vite
+# Exhibition Curator App 
+ 
+ A viewer-driven virtual exhibition platform allowing users to search, filter, and curate personalised exhibitions from museum and university collections. Built as a freelance project using React, vite  with TypeScript, integrating free API's for artworks. This app meets the requirements for a minimum viable product(MVP) with extensions, responsive design, accessibility and documentation.  using museum API's.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Currently, two official plugins are available:
+ ## Project Overview
+ **Context**: Developed for a coalition of museums and universities to create user-curated virtual exhibitions from combined catalogs, useful for researchers, students and art lovers.
+ **High-level Outcome**: Users enter key terms or presets to fetch artworks, add to a personalised exhibition with images/info/links, navigate and share via unique links.
+**MVP Achieved**:
+ 1. Search criteria to filter/sort artworks(keywords/presets, dropdowns for classification/date).
+ 2. Save to temporary collection(add/remove, view/expand with details).
+ 3. Display images/core info on interaction(thumbnails expand to full view).
+ 4. Session persistence(localStorage - survives refreshes, clear on browser close).
+**Non-Functional Requirements Met**
+ - Built in JavaScript/TypeScript(React TS)
+- Responsive design(media queries, flexbox for mobile/desktop)
+- Accessibilty(alt texts, aria-labels, tested with wave - o errors)
+- Fast media loading(lazy images, spinners/indicators)
+- Hosted on free platform(netlify)
+- Code documented(README.md)
+**performance Criteria** Clear errors(toasts), loading(spinners), intuitive ui(buttons/labels for add/view)
+**Tech Stack**: 
+React, Vite, TypeScript, axios(API), React Router(navigation), react-spinners/toastify(UI feedback).
+**Extensions implemented** Unique shareable links(URL params with base64 encoding).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Setup and Installatio(local run)
+To run locally:
+1. **Clone the Repo**:
+git clone https://github.com/gbochi255/exhibition-curator.git
+cd exhibition-curator
 
-## Expanding the ESLint configuration
+2. **Install Dependencies**:
+npm install
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+3. **Get API key**(Harvard): Sign up at harvardartmuseums.org/developers(free) - add to code as HARVARD_API_KEY.
+**Run Dev Server**:
+npm run dev
+- open http://localhost:5173
+5. **Build for production**:
+npm run build
+Outputs to `dist` for hosting.
+6. **Run Tests**:
+npm test
+- Covers render, search, error, add/remove, presets, loading - All pass.
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Major Commands Used:
+- setup: `npm create vite@latest . -- --template react-ts`
+- Deps: `npm install axios react-router-dom styled-components react-spinners react-toastify`
+- Dev: `npm run dev`
+- Test Setup: `npm install --save-dev jest ts-jest @type/jest @testing-library/react @testing/library/jest-dom @testing-library/user-event identity-obj-proxy ts-node`
+- Git: `git init`, `git add .`, `git commit -m "message"`, `git push`
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+## Implementation Details
+- Built a functional MVP with these key areas:
+1. **Setup and Structure** (Week 1, Days 1 - 2):
+-Vite + React TS boilerplate.
+- Components: SearchComponent(search/filter/sort/UI), ExhibitionView(list/remove).
+-Navigation: React Router for /search and /exhibition.
+- Global CSS(index.css) for responsive layouts(media queries, Flexbox).
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+2. **API Integration(Week 1, Days 1- 2)**:
+- Harvard: `/object?q={query}&apikey={key}` for artworks.
+- Met: `/search?q={query}` then /objects/{id} for details.
+- Axios for fetches, combined results.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+3. **Search/Filter/Sort UI(week 1, Days 3 - 5)**
+-input/button for queries, presets buttons.
+- Dropdowns for filter(classification) and sort(date asc/desc, classification).
+- Results as list with thumbnails, details, "Add" button.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+4. **Temporary Collection, (Week 2, days 6 - 7)**:
+- State/localStorage for add/remove, persistence across refreshes.
+- View with images/info/remove.
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+5. **Error/Loading Handling(week 2, days 12 - 14)**:
+- Spinners for loading, toasts for error(react-spinners/toastify).
+- Graceful no-results message.
+
+6. **Responsive/Accessible Design(Week 2, days 13 - 14)**:
+- Media queries for mobile(full-width buttons, centered content).
+- Alt texts, aria-labels, keyboard nav.
+- Tested with wave(0 errors), Lighthouse(performance 98, accessibility 100).
+
+7. **Testing/QA (Week 2, days 15 - 17)**:
+- Jest for unit/integration(render, search, error, add/remove, presets, loading - all pass).
+- Manual UAT: Flows tested on desktop/mobile.
+- Audits: Wave/Lighthouse confirmed.
+
+8. **Extensions(Week 3, Days 18 - 19)**:
+- Shareable links: Encode exhibition in URL(items=base64), decode on load, copy button.
+
+## Outcomes and Achievements
+- **Functional MVP**: Fully achieved-users search/filter/sort, curate/view exhibitions with persistence.
+- **Reliability**: Roburst error/loading, secureb(no auth needed for MVP).
+- **Hosted**: 
+- **Time Management**: Completed in 4 weeks
+- **Learning**: Strengthened React/TS, API integration, testing skills
+
+
+
+
+
+

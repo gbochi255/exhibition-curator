@@ -4,23 +4,25 @@ import Spinner from "react-spinners/PulseLoader";
 import { toast, ToastContainer } from "react-toastify";
 
 
-const HARVARD_API_KEY = 'd276f953-ce0a-46c4-8c70-a6728ea3f723';
+const HARVARD_API_KEY = '601d8cbb-11c2-4343-be4a-5f267348059f';
 const HARVARD_BASE_URL = 'https://api.harvardartmuseums.org/object';
 const MET_BASE_URL = 'https://collectionapi.metmuseum.org/public/collection/v1/search';
+//const MET_BASE_URL = 'https://apisiedu/openaccess/api/v1.0/search'
 
 interface Artwork {
     id: number | string;
-    title: string;
-    description: string;
-    imageUrl: string;
-    url: string;
-    dated: string;
-    century: string;
-    classification: string;
+    title?: string;
+    description?: string;
+    imageUrl?: string;
+    url?: string;
+    dated?: string;
+    century?: string;
+    classification?: string;
 }
 
     function SearchComponent(){
         const [query, setQuery] = useState('');
+        const [rawResults, setRawResults] = useState<Artwork[]>([]);
         const [results, setResults] = useState<Artwork[]>([]);
         const [loading, setLoading] =useState(false);
         const [error, setError] = useState<string | null>(null);
@@ -46,51 +48,101 @@ interface Artwork {
         console.log('Exhibition saved to localstorage:', exhibition);
         
     }, [exhibition]);
+    //apply filter + sort to an array
+    function applyFilterAndSort(data: Artwork[], filter: string, sort: string) {
+        let out = Array.isArray(data) ? [...data] : [];
+        if(filter !== 'all') {
+            out = out.filter((art) => (art.classification ?? '').toLowerCase() === filter.toLocaleLowerCase());
+            }
+            if(sort === 'dateAsc') {
+                out.sort((a, b) =>((a.dated ?? '')).localeCompare((b.dated ?? '')));
+            }else if(sort === 'dateDesc'){
+                out.sort((a, b) => ((b.dated ?? '')).localeCompare((a.dated ?? '')));
+            }else if(sort ==='classification') {
+                out.sort((a, b) => ((a.classification ?? '')).localeCompare((b.classification ?? '')));
+            }
+            return out;
+            }
+            //when sort or filter changes, re-drive results from rawResults(no network call)
+            useEffect(() => {
+                setResults(applyFilterAndSort(rawResults, filterByClassification, sortBy));
+            }, [rawResults, filterByClassification, sortBy]);
 
         const handleSearch = async(overrides?:{
-            query?: String;
+            query?: string;
             filterByClassification?: string;
             sortBy?: string;
         }) => {
+            const activeQuery = overrides?.query ?? query;
+            if(!activeQuery || activeQuery.trim().length === 0){
+                //if query is empty, clear resukts and dont call APIs
+                setRawResults([]);
+                setResults([]);
+                setError(null);
+                return;
+            }
             
             setLoading(true);
             setError(null);
             setResults([]);
+            setRawResults([]);
 
-            const activeQuery = overrides?.query ?? query;
-            const activeFilter = overrides?.filterByClassification ?? filterByClassification;
-            const activeSort = overrides?.sortBy ?? sortBy;
+            //const activeQuery = overrides?.query ?? query;
+             //const activeQuery = (overrides && typeof overrides.query === 'string') ? overrides.query : query;
+            //const activeFilter = overrides?.filterByClassification ?? filterByClassification;
+             //const activeFilter = (overrides && typeof overrides.filterByClassification === 'string') ? overrides.filterByClassification : filterByClassification;
+            //const activeSort = overrides?.sortBy ?? sortBy;
+             //const activeSort = (overrides && typeof overrides.sortBy === 'string') ? overrides.sortBy : sortBy;
             
             let harvardArtworks: Artwork[] = [];
             let metArtworks: Artwork[] = [];
 
             try{
-                const harvardResponse = await axios.get(`${HARVARD_BASE_URL}?q=${query}&apiKey=${HARVARD_API_KEY}&size=5`);
-                const records = Array.isArray(harvardResponse.data.records) ? harvardResponse.data.records : [];
+                const harvardUrl = `${HARVARD_BASE_URL}?q=${encodeURIComponent(activeQuery || '')}&apikey=${HARVARD_API_KEY}&size=15`;
+                //const harvardResponse = await axios.get(`${HARVARD_BASE_URL}?q=${query}&apiKey=${HARVARD_API_KEY}&size=25`);
+                const harvardResponse = await axios.get(harvardUrl);
+
+                const records = harvardResponse && harvardResponse.data && Array.isArray(harvardResponse.data.records)
+                ? harvardResponse.data.records : [];
+                //const records = Array.isArray(harvardResponse.data.records) ? harvardResponse.data.records : [];
                // harvardArtworks = harvardResponse.data.records.map((item: any, index: number) => ({
                     harvardArtworks = records.map((item: any, index: number) => {
-                        const primaryImage = item.primaryimageurl ?? item.primaryimageUrl ?? undefined;
-                        const imagesArray = Array.isArray(item.images) ? item.images : [];
-                        const fallbackImage = imagesArray.length > 0 ? (imagesArray[0].baseimageurl ?? imagesArray[0].baseImageUrl) :undefined;
+                        //const primaryImage = item.primaryimageurl ?? item.primaryimageUrl ?? undefined;
+                        const primaryImage = (item && typeof item.primaryimageurl === 'string') ? item.primaryimageurl : 
+                        (item && typeof item.primaryimageUrl === 'string') ? item.primaryimageUrl : undefined;
+                        
+                        //const imagesArray = Array.isArray(item.images) ? item.images : [];
+                        //const fallbackImage = imagesArray.length > 0 ? (imagesArray[0].baseimageurl ?? imagesArray[0].baseImageUrl) :undefined;
+
+                        let fallbackImage: string | undefined = undefined;
+                        if(item && Array.isArray(item.images) && item.images.length > 0) {
+                            const first = item.images[0];
+                            if(first) {
+                                if(typeof first.baseimageurl === 'string') fallbackImage = first.baseimageurl;
+                                else if (typeof first.baseImageUrl === 'string') fallbackImage = first.baseImageUrl;
+                            }
+                        }
                    
                       return{
-                        id: item.id ?? `harvard-${index}`,
-                        title: item.title ?? 'Untitled',
-                        description: item.description ?? '',
-                        imageUrl: primaryImage ?? fallbackImage,
-                        url: item.url ?? undefined,
-                        dated: item.dated ?? undefined,
-                        century: item.century ?? undefined,
-                        classification: item.classification ?? undefined
+                            id: (item && (item.id ?? `harvard-${index}`)) as number | string,
+                            title: (item && typeof item.title === 'string') ? item.title : 'Untitled',
+                            description: (item && typeof item.description === 'string') ? item.description : '',
+                            imageUrl: primaryImage ?? fallbackImage,
+                            url: (item && typeof item.url === 'string') ? item.url : undefined,
+                            dated: (item && typeof item.dated === 'string') ? item.dated : undefined,
+                            century: (item && typeof item.century === 'string') ? item.century : undefined,
+                            classification: (item && typeof item.classification === 'string') ? item.classification : undefined
+
+                        //id: item.id ?? `harvard-${index}`,
+                        //title: item.title ?? 'Untitled',
+                        //description: item.description ?? '',
+                        //imageUrl: primaryImage ?? fallbackImage,
+                        //url: item.url ?? undefined,
+                        //dated: item.dated ?? undefined,
+                        //century: item.century ?? undefined,
+                        //classification: item.classification ?? undefined
                       }  as Artwork;
-                    /*id: item.id,
-                   title: item.title,
-                    description: item.description,
-                    imageUrl: item.primaryimageUrl || (item.images.length > 0 ? item.images[0].baseimageurl : undefined),//this handles images array
-                    url: item.url,
-                    dated: item.dated, 
-                    century: item.century,
-                    classification: item.classification,*/
+                    
                 });
             }catch (harvardErr) {
                 console.error('Harvard Error:', harvardErr);
@@ -99,9 +151,13 @@ interface Artwork {
             }
             
             try{
-                const metSearch = await axios.get(`${MET_BASE_URL}?q=${query}`);
+                const metSearchUrl = `${MET_BASE_URL}?q=${encodeURIComponent(activeQuery || '')}`;
+                const metSearch = await axios.get(metSearchUrl);
+                //const metSearch = await axios.get(`${MET_BASE_URL}?q=${query}`);
             //const metObjectIDs = metSearch.data.objectIDs.slice(0, 5) || [];
-            const objectIDs = Array.isArray(metSearch.data.objectIDs) ? metSearch.data.objectIDs.slice(0, 5) : [];
+            const objectIDs = metSearch && metSearch && Array.isArray (metSearch.data.objectIDs) 
+            ? metSearch.data.objectIDs.slice(0, 5) : [];
+            //const objectIDs = Array.isArray(metSearch.data.objectIDs) ? metSearch.data.objectIDs.slice(0, 5) : [];
             if (objectIDs.length > 0){
             //metArtworks = await Promise.all(
                 const metResults = await Promise.all(
@@ -109,31 +165,35 @@ interface Artwork {
                 
                         try{
                         const detail = await axios.get(`https://collectionapi.metmuseum.org/public/collection/v1/objects/${id}`);
-                        const item = detail.data ?? {};
+                        
+                        const item = detail && detail.data ? detail.data : {};
                         return {
                             id: item.objectID ?? `met-${id}`,
-                            title: item.title ?? 'Untitled',
-                            description: item.objectName ?? '',
-                            imageUrl: item.primaryImage ?? item.primaryImageSmall ?? undefined,
-                            url: item.objectUrlURL ?? undefined,
-                            dated: item.objectDate ?? undefined,
+                            title: typeof item.title === 'string' ? item.title : 'Untitled',
+                            description: typeof item.objectName === 'string' ? item.objectName : '',
+                            imageUrl: typeof item.primaryImage === 'string' ? item.primaryImage : (typeof item.primaryImageSmall === 'string' ? item.primaryImageSmall : undefined),
+                            url: typeof item.objectURL === 'string' ? item.objectURL : undefined,
+                            dated: typeof item.objectDate === 'string' ? item.objectDate : undefined,
                             century: item.objectEndDate ? `${Math.floor(item.objectEndDate / 100) + 1}th century` : undefined,
-                            classification: item.classification ?? undefined
+                            classification: typeof item.classification === 'string' ? item.classification : undefined
                         } as Artwork;
                     }catch(detailErr){
                         console.error('Met Detail error for ID)', id, detailErr);
                         return null;
                     }
                     })
-                ).then(art => art.filter(Boolean) as Artwork[]);
+                );//.then(art => art.filter(Boolean) as Artwork[]);
+                metArtworks = metResults.filter(Boolean) as Artwork[];
             }
         }catch (metErr) {
             console.error('Met Error:', metErr)
             toast.error('Failed to fetch artworks. Please try again')
         }
         let combined = [...harvardArtworks, ...metArtworks];
+        setRawResults(combined);
+        setResults(applyFilterAndSort(combined, filterByClassification, sortBy));
         //apply filter if selected
-        if (activeFilter !== 'all'){
+        /*if (activeFilter !== 'all'){
             combined = combined.filter(art => art.classification === activeFilter);
         }
         
@@ -143,9 +203,9 @@ interface Artwork {
             combined.sort((a, b) => (b.dated || '').localeCompare(a.dated || ''));
         } else if (activeSort === 'classification') {
             combined.sort((a, b) => (a.classification || '').localeCompare(b.classification || ''));
-        }
+        }*/
         
-        setResults(combined);
+        //setResults(combined);
             if (combined.length === 0){
                     setError('No artworks found. Try "art" or "mona lisa".');
                 }
@@ -178,11 +238,9 @@ interface Artwork {
                     <select 
                         id="filter-select" 
                         value={filterByClassification} 
-                        onChange={(e) => { const v = e.target.value;
-                        setFilterByClassification(v); 
-                        handleSearch({ filterByClassification: v }); }}>
+                        onChange={(e) => { setFilterByClassification(e.target.value); }}>
                         <option value="all">ALL</option>
-                        <option value="Paintings">Paintings</option>
+                        <option value="Painting">Painting</option>
                         <option value="Sculpture">Sculpture</option>
                     </select>
                  </div>
@@ -190,12 +248,10 @@ interface Artwork {
                  <div>
                     <label htmlFor="sort-select">Sort By:</label>
                     <select 
-                        id="sort-select"
+                        id="sort-select" 
                         value={sortBy} 
                         onChange={(e) => {
-                            const v = e.target.value;
-                            setSortBy(v);
-                            handleSearch({ sortBy: v });
+                          setSortBy(e.target.value);
                         }}>
                         <option value="none">None</option>
                         <option value="dateAsc">Date Ascending</option>
@@ -203,11 +259,13 @@ interface Artwork {
                         <option value="classification">Classification</option>
                     </select>
                  </div>
-                 {loading && <Spinner color="#007bff" aria-label="search-loading" data-testid="search-spinner" role="progressbar" /> }
+                 {loading && (
+                    <div data-testid="search-spinner" role="status" aria-label="search-loading" style={{ margin: '8px 0' }}><Spinner color="#007bff" /> 
+                    </div>)}
                  {error && <p style={{ color: 'red' }}>{error}</p>}
                  <ul style={{ listStyle: 'none' }}>
                     {results.map((art, idx) => (
-                        <li key={(art.id ?? idx).toString()} style={{ marginBottom: '20px', display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        <li role="listitem" key={(art.id ?? idx).toString()} style={{ marginBottom: '20px', display: "flex", flexDirection: "column", alignItems: "center" }}>
                             <h3>{art.title}</h3>
                             {art.imageUrl && <img src={art.imageUrl} alt={art.title} style={{ maxWidth: '100%', height: 'auto' }} />}
                             <p>{art.description}</p>
