@@ -91,9 +91,9 @@ Major Commands Used:
 
 ## Outcomes and Achievements
 - **Functional MVP**: Fully achieved-users search/filter/sort, curate/view exhibitions with persistence.
-- **Reliability**: Roburst error/loading, secureb(no auth needed for MVP).
+- **Reliability**: Robust error/loading, secure (no auth needed for MVP).
 - **Hosted**: 
-- **Time Management**: Completed in 4 weeks
+- **Time Management**: To be Completed in 4 weeks
 - **Learning**: Strengthened React/TS, API integration, testing skills
 
 
