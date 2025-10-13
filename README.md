@@ -14,7 +14,7 @@
 **Non-Functional Requirements Met**
  - Built in JavaScript/TypeScript(React TS)
 - Responsive design(media queries, flexbox for mobile/desktop)
-- Accessibilty(alt texts, aria-labels, tested with wave - o errors)
+- Accessibility(alt texts, aria-labels, tested with wave - o errors)
 - Fast media loading(lazy images, spinners/indicators)
 - Hosted on free platform(netlify)
 - Code documented(README.md)
@@ -23,7 +23,7 @@
 React, Vite, TypeScript, axios(API), React Router(navigation), react-spinners/toastify(UI feedback).
 **Extensions implemented** Unique shareable links(URL params with base64 encoding).
 
-## Setup and Installatio(local run)
+## Setup and Installation(local run)
 To run locally:
 1. **Clone the Repo**:
 git clone https://github.com/gbochi255/exhibition-curator.git

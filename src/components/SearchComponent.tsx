@@ -7,7 +7,6 @@ import { toast, ToastContainer } from "react-toastify";
 const HARVARD_API_KEY = '601d8cbb-11c2-4343-be4a-5f267348059f';
 const HARVARD_BASE_URL = 'https://api.harvardartmuseums.org/object';
 const MET_BASE_URL = 'https://collectionapi.metmuseum.org/public/collection/v1/search';
-//const MET_BASE_URL = 'https://apisiedu/openaccess/api/v1.0/search'
 
 interface Artwork {
     id: number | string;
@@ -75,7 +74,7 @@ interface Artwork {
         }) => {
             const activeQuery = overrides?.query ?? query;
             if(!activeQuery || activeQuery.trim().length === 0){
-                //if query is empty, clear resukts and dont call APIs
+                //if query is empty, clear results and don't call APIs
                 setRawResults([]);
                 setResults([]);
                 setError(null);
@@ -87,32 +86,22 @@ interface Artwork {
             setResults([]);
             setRawResults([]);
 
-            //const activeQuery = overrides?.query ?? query;
-             //const activeQuery = (overrides && typeof overrides.query === 'string') ? overrides.query : query;
-            //const activeFilter = overrides?.filterByClassification ?? filterByClassification;
-             //const activeFilter = (overrides && typeof overrides.filterByClassification === 'string') ? overrides.filterByClassification : filterByClassification;
-            //const activeSort = overrides?.sortBy ?? sortBy;
-             //const activeSort = (overrides && typeof overrides.sortBy === 'string') ? overrides.sortBy : sortBy;
+            
             
             let harvardArtworks: Artwork[] = [];
             let metArtworks: Artwork[] = [];
 
             try{
                 const harvardUrl = `${HARVARD_BASE_URL}?q=${encodeURIComponent(activeQuery || '')}&apikey=${HARVARD_API_KEY}&size=15`;
-                //const harvardResponse = await axios.get(`${HARVARD_BASE_URL}?q=${query}&apiKey=${HARVARD_API_KEY}&size=25`);
+                
                 const harvardResponse = await axios.get(harvardUrl);
 
                 const records = harvardResponse && harvardResponse.data && Array.isArray(harvardResponse.data.records)
                 ? harvardResponse.data.records : [];
-                //const records = Array.isArray(harvardResponse.data.records) ? harvardResponse.data.records : [];
-               // harvardArtworks = harvardResponse.data.records.map((item: any, index: number) => ({
+
                     harvardArtworks = records.map((item: any, index: number) => {
-                        //const primaryImage = item.primaryimageurl ?? item.primaryimageUrl ?? undefined;
                         const primaryImage = (item && typeof item.primaryimageurl === 'string') ? item.primaryimageurl : 
                         (item && typeof item.primaryimageUrl === 'string') ? item.primaryimageUrl : undefined;
-                        
-                        //const imagesArray = Array.isArray(item.images) ? item.images : [];
-                        //const fallbackImage = imagesArray.length > 0 ? (imagesArray[0].baseimageurl ?? imagesArray[0].baseImageUrl) :undefined;
 
                         let fallbackImage: string | undefined = undefined;
                         if(item && Array.isArray(item.images) && item.images.length > 0) {
@@ -132,34 +121,22 @@ interface Artwork {
                             dated: (item && typeof item.dated === 'string') ? item.dated : undefined,
                             century: (item && typeof item.century === 'string') ? item.century : undefined,
                             classification: (item && typeof item.classification === 'string') ? item.classification : undefined
-
-                        //id: item.id ?? `harvard-${index}`,
-                        //title: item.title ?? 'Untitled',
-                        //description: item.description ?? '',
-                        //imageUrl: primaryImage ?? fallbackImage,
-                        //url: item.url ?? undefined,
-                        //dated: item.dated ?? undefined,
-                        //century: item.century ?? undefined,
-                        //classification: item.classification ?? undefined
-                      }  as Artwork;
-                    
-                });
+                        }  as Artwork;
+                    });
             }catch (harvardErr) {
                 console.error('Harvard Error:', harvardErr);
                 toast.error('Failed to fetch artworks. Please try again')
-                
-            }
+                }
             
             try{
                 const metSearchUrl = `${MET_BASE_URL}?q=${encodeURIComponent(activeQuery || '')}`;
                 const metSearch = await axios.get(metSearchUrl);
-                //const metSearch = await axios.get(`${MET_BASE_URL}?q=${query}`);
-            //const metObjectIDs = metSearch.data.objectIDs.slice(0, 5) || [];
+                
             const objectIDs = metSearch && metSearch && Array.isArray (metSearch.data.objectIDs) 
             ? metSearch.data.objectIDs.slice(0, 5) : [];
-            //const objectIDs = Array.isArray(metSearch.data.objectIDs) ? metSearch.data.objectIDs.slice(0, 5) : [];
+            
             if (objectIDs.length > 0){
-            //metArtworks = await Promise.all(
+            
                 const metResults = await Promise.all(
                 objectIDs.map(async (id: number) => {
                 
@@ -182,7 +159,7 @@ interface Artwork {
                         return null;
                     }
                     })
-                );//.then(art => art.filter(Boolean) as Artwork[]);
+                );
                 metArtworks = metResults.filter(Boolean) as Artwork[];
             }
         }catch (metErr) {
@@ -192,20 +169,7 @@ interface Artwork {
         let combined = [...harvardArtworks, ...metArtworks];
         setRawResults(combined);
         setResults(applyFilterAndSort(combined, filterByClassification, sortBy));
-        //apply filter if selected
-        /*if (activeFilter !== 'all'){
-            combined = combined.filter(art => art.classification === activeFilter);
-        }
         
-        if (activeSort === 'dateAsc') {
-            combined.sort((a, b) => (a.dated || '').localeCompare(b.dated || ''));
-        } else if (activeSort === 'dateDesc') {
-            combined.sort((a, b) => (b.dated || '').localeCompare(a.dated || ''));
-        } else if (activeSort === 'classification') {
-            combined.sort((a, b) => (a.classification || '').localeCompare(b.classification || ''));
-        }*/
-        
-        //setResults(combined);
             if (combined.length === 0){
                     setError('No artworks found. Try "art" or "mona lisa".');
                 }
