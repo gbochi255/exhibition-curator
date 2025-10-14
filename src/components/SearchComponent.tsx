@@ -4,14 +4,15 @@ import Spinner from "react-spinners/PulseLoader";
 import { toast, ToastContainer } from "react-toastify";
 
 
+const HARVARD_API_KEY = (import.meta.env.VITE_HARVARD_API_KEY ?? '') as string;
 
 const HARVARD_BASE_URL = 'https://api.harvardartmuseums.org/object';
 const MET_BASE_URL = 'https://collectionapi.metmuseum.org/public/collection/v1/search';
 //const HARVARD_API_KEY = (import.meta.env.VITE_HARVARD_API_KEY ?? '') as string;
-const HARVARD_API_KEY = ((process.env.VITE_HARVARD_API_KEY as string) || ((globalThis as any).VITE_HARVARD_API_KEY as string) || ''
-);
-//if(!HARVARD_API_KEY && import.meta.env.MODE !== 'test') 
-if(!HARVARD_API_KEY && process.env.NODE_ENV !== 'test') {
+//const HARVARD_API_KEY = ((process.env.VITE_HARVARD_API_KEY as string) || ((globalThis as any).VITE_HARVARD_API_KEY as string) || ''
+//);
+if(!HARVARD_API_KEY && import.meta.env.MODE !== 'test') {
+//if(!HARVARD_API_KEY && process.env.NODE_ENV !== 'test') {
     console.warn('VITE_HARVARD_API_KEY not set. API calls may fail.');
 }
 
@@ -74,12 +75,15 @@ interface Artwork {
                 setResults(applyFilterAndSort(rawResults, filterByClassification, sortBy));
             }, [rawResults, filterByClassification, sortBy]);
 
-        const handleSearch = async(overrides?:{
+        const handleSearch = async(overrides?: {
             query?: string;
             filterByClassification?: string;
             sortBy?: string;
         }) => {
+            
             const activeQuery = overrides?.query ?? query;
+            const activeFilter = overrides?.filterByClassification ?? filterByClassification;
+            const activeSort = overrides?.sortBy ?? sortBy;
             if(!activeQuery || activeQuery.trim().length === 0){
                 
                 setRawResults([]);
@@ -99,7 +103,9 @@ interface Artwork {
             let metArtworks: Artwork[] = [];
 
             try{
-                const harvardUrl = `${HARVARD_BASE_URL}?q=${encodeURIComponent(activeQuery || '')}&apikey=${HARVARD_API_KEY}&size=15`;
+                const q = encodeURIComponent(activeQuery);
+                const key = HARVARD_API_KEY ? encodeURIComponent(HARVARD_API_KEY) : '';
+                const harvardUrl = `${HARVARD_BASE_URL}?q=${key ? `&apikey=${key}` : ''}&size=25`;
                 
                 const harvardResponse = await axios.get(harvardUrl);
 
@@ -174,8 +180,19 @@ interface Artwork {
             toast.error('Failed to fetch artworks. Please try again')
         }
         let combined = [...harvardArtworks, ...metArtworks];
-        setRawResults(combined);
+        if(activeFilter && activeFilter !== 'all') {
+            combined = combined.filter((art) => art.classification === activeFilter);
+        }
+        if (activeSort === 'dateAsc') {
+            combined.sort((a, b) => (a.dated || '').localeCompare(b.dated || ''));
+        }else if (activeSort === 'dateDesc'){
+            combined.sort((a, b) => (b.dated || '').localeCompare(a.dated || ''));
+        }else if (activeSort === 'classification') {
+            combined.sort((a, b) => (a.classification || '').localeCompare(b.classification || ''));
+        }
+        
         setResults(applyFilterAndSort(combined, filterByClassification, sortBy));
+        setRawResults(combined);
         
             if (combined.length === 0){
                     setError('No artworks found. Try "art" or "mona lisa".');
