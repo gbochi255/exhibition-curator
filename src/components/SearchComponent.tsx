@@ -4,9 +4,13 @@ import Spinner from "react-spinners/PulseLoader";
 import { toast, ToastContainer } from "react-toastify";
 
 
-const HARVARD_API_KEY = '';
+
 const HARVARD_BASE_URL = 'https://api.harvardartmuseums.org/object';
 const MET_BASE_URL = 'https://collectionapi.metmuseum.org/public/collection/v1/search';
+const HARVARD_API_KEY = (import.meta.env.VITE_HARVARD_API_KEY ?? '') as string;
+if(!HARVARD_API_KEY && import.meta.env.MODE !== 'test') {
+    console.warn('VITE_HARVARD_API_KEY not set. API calls may fail.');
+}
 
 interface Artwork {
     id: number | string;
