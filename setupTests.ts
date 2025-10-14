@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom'
+process.env.VITE_HARVARD_API_KEY = process.env.VITE_HARVARD_API_KEY || 'test-harvard-key'
 
 export {}
 if(typeof (globalThis as any).TextEncoder === 'undefined') {
