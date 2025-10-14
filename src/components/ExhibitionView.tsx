@@ -32,13 +32,13 @@ const safeBase64Decode = (s: string) => {
 function ExhibitionView() {
     const [searchParams] = useSearchParams();
     const [exhibition, setExhibition] = useState<Artwork[]>(() => {
-        //load from params if present
+        
         
             try{
                 const encoded = searchParams.get('items');
-                if(encoded) {//decode base64 and parse to json
+                if(encoded) {
                     const decoded = safeBase64Decode(encoded);
-                    const parsed = JSON.parse(decoded);//this decode base64
+                    const parsed = JSON.parse(decoded);
                 if(Array.isArray(parsed)) return parsed as Artwork[];
                 }
             }catch (err){
@@ -54,10 +54,10 @@ function ExhibitionView() {
             }
             return [];
         }catch (err) {
-            //console.error('Failed to load exhibition from storage:', err);
+            console.error('Failed to load exhibition from storage:', err);
             }
         return [];});
-    //to keep localstorage in sync whenever exhibition changes
+    
     useEffect(() => {
         try{
             localStorage.setItem('exhibition', JSON.stringify(exhibition));
@@ -66,13 +66,13 @@ function ExhibitionView() {
             console.error('Failed to persist exhibition', err)
         }
     }, [exhibition]);
-//generate shareable link
+
 const shareLink = (): string => {
     try {
-        const encoded = safeBase64Encode(JSON.stringify(exhibition)); //Base64 encode
+        const encoded = safeBase64Encode(JSON.stringify(exhibition)); 
     return `${window.location.origin}/exhibition?items=${encoded}`;
     }catch (err) {
-        //console.error('Could not build Share link:', err)
+        console.error('Could not build Share link:', err)
        return  `${window.location.origin}/exhibition`;
     }
 };

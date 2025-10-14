@@ -4,7 +4,7 @@ import Spinner from "react-spinners/PulseLoader";
 import { toast, ToastContainer } from "react-toastify";
 
 
-const HARVARD_API_KEY = '601d8cbb-11c2-4343-be4a-5f267348059f';
+const HARVARD_API_KEY = '';
 const HARVARD_BASE_URL = 'https://api.harvardartmuseums.org/object';
 const MET_BASE_URL = 'https://collectionapi.metmuseum.org/public/collection/v1/search';
 
@@ -33,21 +33,21 @@ interface Artwork {
         }
     }
     );
-        //load from storage on init
-        const [sortBy, setSortBy] = useState('none'); //for sorting
-        const [filterByClassification, setFilterByClassification] = useState('all'); //for filtering
+        
+        const [sortBy, setSortBy] = useState('none'); 
+        const [filterByClassification, setFilterByClassification] = useState('all'); 
 
         useEffect(() => { 
             try{
-            localStorage.setItem('exhibition', JSON.stringify(exhibition)); //save on storage
-            console.log('Exhibition saved to localstorage:', exhibition);// debug
+            localStorage.setItem('exhibition', JSON.stringify(exhibition)); 
+            
         }catch (e) {
 
         }
         console.log('Exhibition saved to localstorage:', exhibition);
         
     }, [exhibition]);
-    //apply filter + sort to an array
+    
     function applyFilterAndSort(data: Artwork[], filter: string, sort: string) {
         let out = Array.isArray(data) ? [...data] : [];
         if(filter !== 'all') {
@@ -62,7 +62,7 @@ interface Artwork {
             }
             return out;
             }
-            //when sort or filter changes, re-drive results from rawResults(no network call)
+            
             useEffect(() => {
                 setResults(applyFilterAndSort(rawResults, filterByClassification, sortBy));
             }, [rawResults, filterByClassification, sortBy]);
@@ -74,7 +74,7 @@ interface Artwork {
         }) => {
             const activeQuery = overrides?.query ?? query;
             if(!activeQuery || activeQuery.trim().length === 0){
-                //if query is empty, clear results and don't call APIs
+                
                 setRawResults([]);
                 setResults([]);
                 setError(null);
@@ -196,7 +196,7 @@ interface Artwork {
                     ))}
                  </div>
                  
-                 {/*  filter Dropdown */}
+                 
                  <div>
                     <label htmlFor="filter-select">Filter By Classification: </label>
                     <select 
@@ -208,7 +208,7 @@ interface Artwork {
                         <option value="Sculpture">Sculpture</option>
                     </select>
                  </div>
-                 {/* Sort Dropdown */}
+                 
                  <div>
                     <label htmlFor="sort-select">Sort By:</label>
                     <select 

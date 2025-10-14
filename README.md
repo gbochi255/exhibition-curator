@@ -81,7 +81,7 @@ Major Commands Used:
 - Alt texts, aria-labels, keyboard nav.
 - Tested with wave(0 errors), Lighthouse(performance 98, accessibility 100).
 
-7. **Testing/QA (Week 2, days 15 - 17)**:
+7. **Testing/QA (Week 3, days 15 - 17)**:
 - Jest for unit/integration(render, search, error, add/remove, presets, loading - all pass).
 - Manual UAT: Flows tested on desktop/mobile.
 - Audits: Wave/Lighthouse confirmed.
