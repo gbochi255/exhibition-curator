@@ -84,8 +84,8 @@ interface Artwork {
             const activeQuery = overrides?.query ?? query;
             const activeFilter = overrides?.filterByClassification ?? filterByClassification;
             const activeSort = overrides?.sortBy ?? sortBy;
+            
             if(!activeQuery || activeQuery.trim().length === 0){
-                
                 setRawResults([]);
                 setResults([]);
                 setError(null);
@@ -97,33 +97,34 @@ interface Artwork {
             setResults([]);
             setRawResults([]);
 
-            
-            
             let harvardArtworks: Artwork[] = [];
             let metArtworks: Artwork[] = [];
 
             try{
                 const q = encodeURIComponent(activeQuery);
                 const key = HARVARD_API_KEY ? encodeURIComponent(HARVARD_API_KEY) : '';
-                const harvardUrl = `${HARVARD_BASE_URL}?q=${key ? `&apikey=${key}` : ''}&size=25`;
+                const harvardUrl = `${HARVARD_BASE_URL}?q=${q}${key ? `&apikey=${key}` : ''}&size=25`;
                 
                 const harvardResponse = await axios.get(harvardUrl);
 
-                const records = harvardResponse && harvardResponse.data && Array.isArray(harvardResponse.data.records)
+                const records = harvardResponse?.data && Array.isArray(harvardResponse.data.records)
                 ? harvardResponse.data.records : [];
 
                     harvardArtworks = records.map((item: any, index: number) => {
-                        const primaryImage = (item && typeof item.primaryimageurl === 'string') ? item.primaryimageurl : 
-                        (item && typeof item.primaryimageUrl === 'string') ? item.primaryimageUrl : undefined;
+                        const primaryImage = item.primaryimageurl ?? item.primaryimageUrl ?? undefined;
+                        //(item && typeof item.primaryimageurl === 'string') ? item.primaryimageurl : 
+                        //(item && typeof item.primaryimageUrl === 'string') ? item.primaryimageUrl : undefined;
+                        const imagesArray = Array.isArray(item.images) ? item.images : [];
+                        const fallbackImage = imagesArray.length > 0 ? (imagesArray[0].baseimageurl ?? imagesArray[0].baseImageUrl) : undefined;
 
-                        let fallbackImage: string | undefined = undefined;
+                        /*let fallbackImage: string | undefined = undefined;
                         if(item && Array.isArray(item.images) && item.images.length > 0) {
                             const first = item.images[0];
                             if(first) {
                                 if(typeof first.baseimageurl === 'string') fallbackImage = first.baseimageurl;
                                 else if (typeof first.baseImageUrl === 'string') fallbackImage = first.baseImageUrl;
                             }
-                        }
+                        }*/
                    
                       return{
                             id: (item && (item.id ?? `harvard-${index}`)) as number | string,
@@ -145,17 +146,13 @@ interface Artwork {
                 const metSearchUrl = `${MET_BASE_URL}?q=${encodeURIComponent(activeQuery || '')}`;
                 const metSearch = await axios.get(metSearchUrl);
                 
-            const objectIDs = metSearch && metSearch && Array.isArray (metSearch.data.objectIDs) 
-            ? metSearch.data.objectIDs.slice(0, 5) : [];
+            const objectIDs = metSearch?.data && Array.isArray (metSearch.data.objectIDs) ? metSearch.data.objectIDs.slice(0, 5) : [];
             
             if (objectIDs.length > 0){
-            
                 const metResults = await Promise.all(
                 objectIDs.map(async (id: number) => {
-                
-                        try{
+                    try{
                         const detail = await axios.get(`https://collectionapi.metmuseum.org/public/collection/v1/objects/${id}`);
-                        
                         const item = detail && detail.data ? detail.data : {};
                         return {
                             id: item.objectID ?? `met-${id}`,
@@ -191,7 +188,7 @@ interface Artwork {
             combined.sort((a, b) => (a.classification || '').localeCompare(b.classification || ''));
         }
         
-        setResults(applyFilterAndSort(combined, filterByClassification, sortBy));
+        setResults(combined);
         setRawResults(combined);
         
             if (combined.length === 0){
