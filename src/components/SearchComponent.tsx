@@ -112,19 +112,11 @@ interface Artwork {
 
                     harvardArtworks = records.map((item: any, index: number) => {
                         const primaryImage = item.primaryimageurl ?? item.primaryimageUrl ?? undefined;
-                        //(item && typeof item.primaryimageurl === 'string') ? item.primaryimageurl : 
-                        //(item && typeof item.primaryimageUrl === 'string') ? item.primaryimageUrl : undefined;
+                        
                         const imagesArray = Array.isArray(item.images) ? item.images : [];
                         const fallbackImage = imagesArray.length > 0 ? (imagesArray[0].baseimageurl ?? imagesArray[0].baseImageUrl) : undefined;
 
-                        /*let fallbackImage: string | undefined = undefined;
-                        if(item && Array.isArray(item.images) && item.images.length > 0) {
-                            const first = item.images[0];
-                            if(first) {
-                                if(typeof first.baseimageurl === 'string') fallbackImage = first.baseimageurl;
-                                else if (typeof first.baseImageUrl === 'string') fallbackImage = first.baseImageUrl;
-                            }
-                        }*/
+                        
                    
                       return{
                             id: (item && (item.id ?? `harvard-${index}`)) as number | string,
