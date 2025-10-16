@@ -33,6 +33,7 @@ interface Artwork {
         const [results, setResults] = useState<Artwork[]>([]);
         const [loading, setLoading] =useState(false);
         const [error, setError] = useState<string | null>(null);
+        const [recentlyAdded, setRecentlyAdded] = useState<Record<string, boolean>>({});
         const [exhibition, setExhibition] = useState<Artwork[]>(() => {
             try{
             return JSON.parse(localStorage.getItem('exhibition') || '[]'); 
@@ -249,7 +250,22 @@ interface Artwork {
                             <p>Dated: {art.dated || art.century}</p>
                             <p>Classification: {art.classification}</p>
                             <a href={art.url} target="_blank" rel="noopener noreferrer">More Info</a>
-                            <button onClick={() => setExhibition([...exhibition, art])}>Add to Exhibition</button>
+                            <button onClick={() => {
+                                setExhibition(prev => {
+                                    const next = [...exhibition, art];
+                                return next; });
+                            toast.success('Added to exhibition');
+                        const idKey = String(art.id);
+                    setRecentlyAdded(prev => ({ ...prev, [idKey]: true }));
+                setTimeout(() => {
+                    setRecentlyAdded(prev => {
+                        const copy = { ...prev };
+                        delete copy[idKey];
+                            return copy;
+                    })
+                    }, 1500);
+                    }} >
+                {recentlyAdded[String(art.id)] ? 'Copied' : 'Added to Exhibition'}</button>
                         </li>
                     ))}</ul>
             </div>

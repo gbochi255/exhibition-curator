@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 interface Artwork {
@@ -31,6 +33,7 @@ const safeBase64Decode = (s: string) => {
 
 function ExhibitionView() {
     const [searchParams] = useSearchParams();
+    const [copied, setCopied] = useState(false);
     const [exhibition, setExhibition] = useState<Artwork[]>(() => {
         
         
@@ -80,14 +83,30 @@ const shareLink = (): string => {
 };
     const copyShareLink = async () => {
         try{
-            await navigator.clipboard.writeText(shareLink());
+            const link = shareLink();
+            if(navigator && navigator.clipboard && typeof navigator.clipboard.writeText === 'function'){
+                await navigator.clipboard.writeText(link);
+            }else {
+                const ta = document.createElement('textarea');
+                ta.value = link;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+            }
+            toast.success('Link copied');
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1500);
+            
         }catch (err) {
             console.error('Failed to copy', err)
+            toast.error('Copy failed');
         }
     };
     
 return (
         <div className='container'>
+            
             <h2>My exhibition({exhibition.length} item{exhibition.length === 1 ? '' : 's'})</h2>
             {exhibition.length === 0 && <p>No items in your exhibition</p>}
             <ul style={{ listStyle: 'none', paddingLeft: 0 }}> 
@@ -112,7 +131,8 @@ return (
                     ))}
             </ul>
             <div style={{ marginTop: 12 }}>
-                <button onClick={copyShareLink}>Copy Share Link</button>
+                <ToastContainer />
+                <button onClick={copyShareLink} aria-live='polite'>{copied ? 'Link copied' : 'Copy Share Link'}</button>
             </div>
         </div>
     );
