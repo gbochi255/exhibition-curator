@@ -33,15 +33,16 @@ cd exhibition-curator
 npm install
 
 3. **Get API key**(Harvard): Sign up at harvardartmuseums.org/developers(free) - add to code as HARVARD_API_KEY.
-**Run Dev Server**:
-npm run dev
+- Create a local env file(.env.local, do not commit). Put API keys in this file. add to .gitignore
+
+4. **Run Dev Server**: - npm run dev
 - open http://localhost:5173
-5. **Build for production**:
-npm run build
-Outputs to `dist` for hosting.
+
+5. **Build for production**: - npm run build
+- Outputs to `dist` for hosting.
+- npm run preview to preview it locally.
 6. **Run Tests**:
-npm test
-- Covers render, search, error, add/remove, presets, loading - All pass.
+  npm test - Covers render, search, filtering, sorting, error, add/remove, presets, loading, shareable link - All pass.
 
 Major Commands Used:
 - setup: `npm create vite@latest . -- --template react-ts`
@@ -53,22 +54,22 @@ Major Commands Used:
 ## Implementation Details
 - Built a functional MVP with these key areas:
 1. **Setup and Structure** (Week 1, Days 1 - 2):
--Vite + React TS boilerplate.
+- Vite + React TS boilerplate 
 - Components: SearchComponent(search/filter/sort/UI), ExhibitionView(list/remove).
--Navigation: React Router for /search and /exhibition.
+- Navigation: React Router for /search and /exhibition.
 - Global CSS(index.css) for responsive layouts(media queries, Flexbox).
 
-2. **API Integration(Week 1, Days 1- 2)**:
+2. **API Integration(Week 1, Days 3 - 5)**:
 - Harvard: `/object?q={query}&apikey={key}` for artworks.
 - Met: `/search?q={query}` then /objects/{id} for details.
 - Axios for fetches, combined results.
 
-3. **Search/Filter/Sort UI(week 1, Days 3 - 5)**
--input/button for queries, presets buttons.
+3. **Search/Filter/Sort UI(week 1, Days 6 - 7)**
+- input/button for queries, presets buttons.
 - Dropdowns for filter(classification) and sort(date asc/desc, classification).
 - Results as list with thumbnails, details, "Add" button.
 
-4. **Temporary Collection, (Week 2, days 6 - 7)**:
+4. **Temporary Collection, (Week 2, days 8 - 11)**:
 - State/localStorage for add/remove, persistence across refreshes.
 - View with images/info/remove.
 
@@ -89,11 +90,38 @@ Major Commands Used:
 8. **Extensions(Week 3, Days 18 - 19)**:
 - Shareable links: Encode exhibition in URL(items=base64), decode on load, copy button.
 
+9. **Deploy and Docs(week 3, Days 20 - 21)**
+Deployed to netlify(free, auto update from GitHub)
+- Create to Netlify and log in.
+- Click New site -> Import from git
+- Connect Git provider(GitHub) and choose the repo
+- Set build command and publish directory
+- Deploy site.
+# Build & Publish settings
+Build settings command - npm run build
+Publish directory - dist
+Netlify will run npm install, then run npm build.
+## Required TypeScript compile first(tsc)  
+In build script (locally) include
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test"; "jest"
+  }
+  ## Set or add environment variables in Netlify to Keep secrets like API keys 
+  Add - key / value pair
+  VITE_HARVARD_API_KEY:"your_api_key" - Netlify injects them to the build environment and Vite exposes them to the client as import.meta.env
+  - this ensures not to expose secrets in the repo.
+  # Client-side routing ior redirects
+  add a _redirects file in public folder - ensures all client-side routes are served index.html
+  /* /index.html 200
+
 ## Outcomes and Achievements
 - **Functional MVP**: Fully achieved-users search/filter/sort, curate/view exhibitions with persistence.
 - **Reliability**: Robust error/loading, secure (no auth needed for MVP).
 - **Hosted**: 
-- **Time Management**: To be Completed in 4 weeks
+- **Time Management**: To be Completed in 3 weeks
 - **Learning**: Strengthened React/TS, API integration, testing skills
 
 
