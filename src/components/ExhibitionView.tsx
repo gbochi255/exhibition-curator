@@ -74,10 +74,10 @@ const shareLink = (): string => {
     try {
         const encoded = safeBase64Encode(JSON.stringify(exhibition));
         return new URL('/exhibition?items=' + encodeURIComponent(encoded), window.location.origin).toString(); 
-    //return //`${window.location.origin}/exhibition?items=${encoded}`;
+    
     }catch (err) {
         console.error('Could not build Share link:', err)
-       //return  //`${window.location.origin}/exhibition`;
+       
        return new URL('/exhibition', window.location.origin).toString();
     }
 };

@@ -121,7 +121,7 @@ In build script (locally) include
 - **Functional MVP**: Fully achieved-users search/filter/sort, curate/view exhibitions with persistence.
 - **Reliability**: Robust error/loading, secure (no auth needed for MVP).
 - **Hosted**: 
-- **Time Management**: To be Completed in 3 weeks
+- **Time Management**: Completed in 4 weeks
 - **Learning**: Strengthened React/TS, API integration, testing skills
 
 

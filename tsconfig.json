@@ -13,13 +13,9 @@
     "strict": true,
     "isolatedModules": true
     
-    //"allowImportingTsExtensions": true,
+    
     },
   "include": ["src", "__test__", "setupTests.ts", "vite.config.ts", "scripts", "src/__tests__"],
   "exclude": ["node_modules", "dist"],
-  //"files": [],
-  //"references": [
-   // { "path": "./tsconfig.app.json" },
-   // { "path": "./tsconfig.node.json" }
-  //]
+  
 }
