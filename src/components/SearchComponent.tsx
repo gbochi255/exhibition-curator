@@ -280,22 +280,7 @@ interface Artwork {
                             <p>Dated: {art.dated || art.century}</p>
                             <p>Classification: {art.classification}</p>
                             <a href={art.url} target="_blank" rel="noopener noreferrer">More Info</a>
-                            <button onClick={() => {addToExhibition(art)
-                                
-                                /*setExhibition(prev => {
-                                    const next = [...exhibition, art];
-                                return next; });
-                            toast.success('Added to exhibition');
-                        const idKey = String(art.id);
-                    setRecentlyAdded(prev => ({ ...prev, [idKey]: true }));
-                setTimeout(() => {
-                    setRecentlyAdded(prev => {
-                        const copy = { ...prev };
-                        delete copy[idKey];
-                            return copy;
-                    })
-                    }, 1500);*/
-                            }} >
+                            <button onClick={() => { addToExhibition(art) }} >
                 {recentlyAdded[String(art.id)] ? 'Copied' : 'Add to Exhibition'}</button>
                     </li>
                     ))}
