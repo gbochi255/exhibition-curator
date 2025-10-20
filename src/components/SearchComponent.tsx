@@ -263,7 +263,7 @@ interface Artwork {
                     })
                     }, 1500);
                     }} >
-                {recentlyAdded[String(art.id)] ? 'Copied' : 'Added to Exhibition'}</button>
+                {recentlyAdded[String(art.id)] ? 'Copied' : 'Add to Exhibition'}</button>
                         </li>
                     ))}</ul>
             </div>
