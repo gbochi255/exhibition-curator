@@ -252,7 +252,7 @@ interface Artwork {
                                 setExhibition(prev => {
                                     const next = [...exhibition, art];
                                 return next; });
-                            toast.success('Added to exhibition');
+                            toast.success('Added to exhibition', { autoClose: 1500, hideProgressBar: true });
                         const idKey = String(art.id);
                     setRecentlyAdded(prev => ({ ...prev, [idKey]: true }));
                 setTimeout(() => {
