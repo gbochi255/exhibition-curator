@@ -38,8 +38,7 @@ interface Artwork {
         }catch {
             return []
         }
-    }
-    );
+    });
         
         const [sortBy, setSortBy] = useState('none'); 
         const [filterByClassification, setFilterByClassification] = useState('all'); 
@@ -47,13 +46,49 @@ interface Artwork {
         useEffect(() => { 
             try{
             localStorage.setItem('exhibition', JSON.stringify(exhibition)); 
-            
-        }catch (e) {
+        }catch(e) {
 
         }
-        console.log('Exhibition saved to localstorage:', exhibition);
+        //console.log('Exhibition saved to localstorage:', exhibition);
         
     }, [exhibition]);
+
+    const removalTimersRef = useRef<Record<string, number>>({});
+        const addToExhibition = useCallback((art: Artwork) => {
+            setExhibition(prev => {
+                    return [...prev, art];
+            });
+            try{
+                toast.success('Added to exhibition', { autoClose: 1500, hideProgressBar: true });
+            }catch(e) {
+
+            }
+        const idKey = String(art.id);
+            setRecentlyAdded(prev => ({ ...prev, [idKey]: true }));
+
+        if(removalTimersRef.current[idKey]){
+            clearTimeout(removalTimersRef.current[idKey]);
+                delete removalTimersRef.current[idKey];
+            }
+        const timerId = window.setTimeout(() => {
+            setRecentlyAdded(prev => {
+                const copy = { ...prev };
+                delete copy[idKey];
+                return copy;
+            });
+            delete removalTimersRef.current[idKey];
+            }, 1500);
+            removalTimersRef.current[idKey] = timerId;
+        }, [setExhibition, setRecentlyAdded]);
+
+        useEffect(() => {
+            return () => {
+            const timers = removalTimersRef.current;
+            Object.keys(timers).forEach(k => {
+                clearTimeout(timers[k]);
+                delete timers[k]; });
+            };
+        }, []);
     
     function applyFilterAndSort(data: Artwork[], filter: string, sort: string) {
         let out = Array.isArray(data) ? [...data] : [];
@@ -207,8 +242,6 @@ interface Artwork {
                         </button>
                     ))}
                  </div>
-                 
-                 
                  <div>
                     <label htmlFor="filter-select">Filter By Classification: </label>
                     <select 
@@ -220,7 +253,6 @@ interface Artwork {
                         <option value="Sculpture">Sculpture</option>
                     </select>
                  </div>
-                 
                  <div>
                     <label htmlFor="sort-select">Sort By:</label>
                     <select 
@@ -248,38 +280,8 @@ interface Artwork {
                             <p>Dated: {art.dated || art.century}</p>
                             <p>Classification: {art.classification}</p>
                             <a href={art.url} target="_blank" rel="noopener noreferrer">More Info</a>
-                            <button onClick={() => {
-                                const removalTimersRef = useRef<Record<string, number>>({});
-                                function addToExhibition(art: Artwork) {
-                                    setExhibition(prev => {
-                                        return [...prev, art];
-                                    });
-                                    toast.success('Added to exhibition', { autoClose: 1500, hideProgressBar: true});
-                                    const idKey = String(art.id);
-                                setRecentlyAdded(prev => ({ ...prev, [idKey]: true }));
-
-                                if(removalTimersRef.current[idKey]){
-                                    clearTimeout(removalTimersRef.current[idKey]);
-                                }
-                                const timerId = window.setTimeout(() => {
-                                    setRecentlyAdded(prev => {
-                                        const copy = { ...prev };
-                                        delete copy[idKey];
-                                            return copy;
-                                });
-                                delete removalTimersRef.current[idKey];
-                                }, 1500);
-                                removalTimersRef.current[idKey] = timerId;
-
-                                useEffect(() => {
-                                    return () => {
-                                        const timers = removalTimersRef.current;
-                                        Object.keys(timers).forEach(k => {
-                                            clearTimeout(timers[k]);
-                                            delete timers[k];
-                                        });
-                                    };
-                                }, []);
+                            <button onClick={() => {addToExhibition(art)
+                                
                                 /*setExhibition(prev => {
                                     const next = [...exhibition, art];
                                 return next; });
@@ -293,12 +295,14 @@ interface Artwork {
                             return copy;
                     })
                     }, 1500);*/
-                    }}} >
+                            }} >
                 {recentlyAdded[String(art.id)] ? 'Copied' : 'Add to Exhibition'}</button>
-                        </li>
-                    ))}</ul>
+                    </li>
+                    ))}
+                    </ul>
             </div>
-        );
-    }
+        )
+    };
+    
 
     export default SearchComponent;
