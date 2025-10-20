@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import Spinner from "react-spinners/PulseLoader";
 import { toast, ToastContainer } from "react-toastify";
@@ -249,10 +249,41 @@ interface Artwork {
                             <p>Classification: {art.classification}</p>
                             <a href={art.url} target="_blank" rel="noopener noreferrer">More Info</a>
                             <button onClick={() => {
-                                setExhibition(prev => {
+                                const removalTimersRef = useRef<Record<string, number>>({});
+                                function addToExhibition(art: Artwork) {
+                                    setExhibition(prev => {
+                                        return [...prev, art];
+                                    });
+                                    toast.success('Added to exhibition', { autoClose: 1500, hideProgressBar: true});
+                                    const idKey = String(art.id);
+                                setRecentlyAdded(prev => ({ ...prev, [idKey]: true }));
+
+                                if(removalTimersRef.current[idKey]){
+                                    clearTimeout(removalTimersRef.current[idKey]);
+                                }
+                                const timerId = window.setTimeout(() => {
+                                    setRecentlyAdded(prev => {
+                                        const copy = { ...prev };
+                                        delete copy[idKey];
+                                            return copy;
+                                });
+                                delete removalTimersRef.current[idKey];
+                                }, 1500);
+                                removalTimersRef.current[idKey] = timerId;
+
+                                useEffect(() => {
+                                    return () => {
+                                        const timers = removalTimersRef.current;
+                                        Object.keys(timers).forEach(k => {
+                                            clearTimeout(timers[k]);
+                                            delete timers[k];
+                                        });
+                                    };
+                                }, []);
+                                /*setExhibition(prev => {
                                     const next = [...exhibition, art];
                                 return next; });
-                            toast.success('Added to exhibition', { autoClose: 1500, hideProgressBar: true });
+                            toast.success('Added to exhibition');
                         const idKey = String(art.id);
                     setRecentlyAdded(prev => ({ ...prev, [idKey]: true }));
                 setTimeout(() => {
@@ -261,8 +292,8 @@ interface Artwork {
                         delete copy[idKey];
                             return copy;
                     })
-                    }, 1500);
-                    }} >
+                    }, 1500);*/
+                    }}} >
                 {recentlyAdded[String(art.id)] ? 'Copied' : 'Add to Exhibition'}</button>
                         </li>
                     ))}</ul>
